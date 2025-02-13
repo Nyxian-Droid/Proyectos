@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bola Roja</title>
+    <style>
+        .bola-roja {
+            width: 100px;
+            height: 100px;
+            background-color: red;
+            border-radius: 50%;
+            position: absolute;
+            cursor: grab;
+        }
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="bola-roja" id="bola"></div>
+    <script>
+        const bola = document.getElementById('bola');
+        let posX = (window.innerWidth - 100) / 2;
+        let posY = (window.innerHeight - 100) / 2;
+        let velX = 5;
+        let velY = 5;
+        let isDragging = false;
+        let offsetX, offsetY;
+        let lastMouseX, lastMouseY;
+        let lastTime;
+        let clickCount = 0;
+        let clickTimeout;
+
+        const update = () => {
+            if (!isDragging) {
+                const rect = bola.getBoundingClientRect();
+                if (posX + rect.width >= window.innerWidth || posX <= 0) {
+                    velX = -velX;
+                }
+                if (posY + rect.height >= window.innerHeight || posY <= 0) {
+                    velY = -velY;
+                }
+                posX += velX;
+                posY += velY;
+                bola.style.left = posX + 'px';
+                bola.style.top = posY + 'px';
+            }
+            requestAnimationFrame(update);
+        };
+
+        bola.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            offsetX = e.clientX - bola.getBoundingClientRect().left;
+            offsetY = e.clientY - bola.getBoundingClientRect().top;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            lastTime = Date.now();
+            bola.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                posX = e.clientX - offsetX;
+                posY = e.clientY - offsetY;
+
+                // Limitar la posición de la pelota dentro de los límites de la ventana
+                const rect = bola.getBoundingClientRect();
+                if (posX < 0) posX = 0;
+                if (posX + rect.width > window.innerWidth) posX = window.innerWidth - rect.width;
+                if (posY < 0) posY = 0;
+                if (posY + rect.height > window.innerHeight) posY = window.innerHeight - rect.height;
+
+                bola.style.left = posX + 'px';
+                bola.style.top = posY + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', (e) => {
+            if (isDragging) {
+                const currentTime = Date.now();
+                const timeDiff = currentTime - lastTime;
+                const mouseXDiff = e.clientX - lastMouseX;
+                const mouseYDiff = e.clientY - lastMouseY;
+
+                velX = mouseXDiff / timeDiff * 50; // Ajusta el factor de escala según sea necesario
+                velY = mouseYDiff / timeDiff * 50; // Ajusta el factor de escala según sea necesario
+
+                isDragging = false;
+                bola.style.cursor = 'grab';
+            }
+        });
+
+        bola.addEventListener('click', () => {
+            clickCount++;
+            clearTimeout(clickTimeout);
+            if (clickCount === 3) {
+                window.location.href = 'por.html';
+            } else {
+                clickTimeout = setTimeout(() => {
+                    clickCount = 0;
+                }, 5000);
+            }
+        });
+
+        document.addEventListener('dblclick', () => {
+            posX = (window.innerWidth - 100) / 2;
+            posY = (window.innerHeight - 100) / 2;
+            velX = 0;
+            velY = 0;
+            bola.style.left = posX + 'px';
+            bola.style.top = posY + 'px';
+        });
+
+        // Inicializar la posición de la bola en el centro
+        bola.style.left = posX + 'px';
+        bola.style.top = posY + 'px';
+
+        update();
+    </script>
+</body>
+</html>
